@@ -1,19 +1,20 @@
 <?php
 session_start();
-include "conexion.php";
+include("db.php");
 
-$user=$_POST['usuario'];
-$pin=hash('sha256',$_POST['pin']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-$stmt=$conn->prepare("SELECT * FROM admin WHERE usuario=? AND pin=?");
-$stmt->bind_param("ss",$user,$pin);
-$stmt->execute();
-$res=$stmt->get_result();
+    $usuario = $conn->real_escape_string($_POST["usuario"]);
+    $pin = $conn->real_escape_string($_POST["pin"]);
 
-if($res->num_rows>0){
-$_SESSION['admin']=$user;
-header("Location: dashboard.php");
-}else{
-echo "<script>alert('Error');location='index.html'</script>";
+    $sql = "SELECT * FROM admin WHERE usuario='$usuario' AND pin='$pin'";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        $_SESSION["admin"] = $usuario;
+        header("Location: dashboard.php");
+    } else {
+        echo "<script>alert('Credenciales incorrectas'); window.location='index.html';</script>";
+    }
 }
 ?>

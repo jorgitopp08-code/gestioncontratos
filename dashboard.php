@@ -1,78 +1,80 @@
 <?php
 session_start();
-include "conexion.php";
-if(!isset($_SESSION['admin'])) header("Location:index.html");
-?>
+include("db.php");
 
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-light">
-<div class="container mt-4">
-
-<div class="d-flex justify-content-between">
-<h3>Empleados</h3>
-<a href="logout.php" class="btn btn-danger">Salir</a>
-</div>
-
-<form action="empleados.php" method="POST" class="card p-3 mt-3">
-<input type="hidden" name="id" id="id">
-
-<div class="row">
-<div class="col"><input class="form-control" name="cedula" id="cedula" placeholder="Cédula"></div>
-<div class="col"><input class="form-control" name="nombre" id="nombre" placeholder="Nombre"></div>
-<div class="col"><input class="form-control" name="email" id="email" placeholder="Email"></div>
-</div>
-
-<div class="row mt-2">
-<div class="col"><input class="form-control" name="telefono" id="telefono" placeholder="Teléfono"></div>
-<div class="col"><input class="form-control" type="date" name="fecha" id="fecha"></div>
-<div class="col">
-<select class="form-control" name="tipo" id="tipo">
-<option value="indefinido">Indefinido</option>
-<option value="fijo">Fijo</option>
-</select>
-</div>
-</div>
-
-<button class="btn btn-success mt-2" name="guardar">Guardar</button>
-</form>
-
-<table class="table table-striped mt-3">
-<tr><th>Cédula</th><th>Nombre</th><th>Acciones</th></tr>
-
-<?php
-$res=$conn->query("SELECT * FROM empleados");
-while($r=$res->fetch_assoc()){
-echo "<tr>
-<td>{$r['cedula']}</td>
-<td>{$r['nombre']}</td>
-<td>
-<button class='btn btn-warning btn-sm' onclick='editar(".json_encode($r).")'>Editar</button>
-<a class='btn btn-danger btn-sm' href='empleados.php?eliminar={$r['id']}'>Eliminar</a>
-</td>
-</tr>";
+if (!isset($_SESSION["admin"])) {
+    header("Location: index.html");
 }
 ?>
 
-</table>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Empleados</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between">
+        <h2>👨‍💼 Gestión de Empleados</h2>
+        <a href="logout.php" class="btn btn-danger">Cerrar sesión</a>
+    </div>
+
+    <a href="crear.php" class="btn btn-success my-3">➕ Nuevo Empleado</a>
+
+    <input type="text" id="buscar" class="form-control mb-3" placeholder="Buscar empleado...">
+
+    <table class="table table-bordered table-striped" id="tabla">
+        <thead class="table-dark">
+            <tr>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        <?php
+        $sql = "SELECT * FROM empleados";
+        $result = $conn->query($sql);
+
+        while($row = $result->fetch_assoc()) {
+            echo "<tr>
+                <td>{$row['cedula']}</td>
+                <td>{$row['nombre']}</td>
+                <td>{$row['fecha_ingreso']}</td>
+                <td>{$row['telefono']}</td>
+                <td>{$row['correo']}</td>
+                <td>
+                    <a href='editar.php?id={$row['id']}' class='btn btn-warning btn-sm'>Editar</a>
+                    <a href='eliminar.php?id={$row['id']}' class='btn btn-danger btn-sm'>Eliminar</a>
+                </td>
+            </tr>";
+        }
+        ?>
+
+        </tbody>
+    </table>
 
 </div>
 
 <script>
-function editar(e){
-document.getElementById('id').value=e.id;
-document.getElementById('cedula').value=e.cedula;
-document.getElementById('nombre').value=e.nombre;
-document.getElementById('email').value=e.email;
-document.getElementById('telefono').value=e.telefono;
-document.getElementById('fecha').value=e.fecha_ingreso;
-document.getElementById('tipo').value=e.tipo_contrato;
-}
+document.getElementById("buscar").addEventListener("keyup", function() {
+    let filtro = this.value.toLowerCase();
+    let filas = document.querySelectorAll("#tabla tbody tr");
+
+    filas.forEach(fila => {
+        fila.style.display = fila.innerText.toLowerCase().includes(filtro) ? "" : "none";
+    });
+});
 </script>
 
 </body>
