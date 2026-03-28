@@ -9,6 +9,7 @@
 </tr>
 
 <?php
+include("db.php");
 $res=$conn->query("SELECT * FROM empleados");
 while($r=$res->fetch_assoc()){
 echo "<tr>
