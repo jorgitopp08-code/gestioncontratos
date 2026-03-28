@@ -1,8 +1,8 @@
 <?php
-$host = "sql210.infinityfree.com";
-$user = "if0_41392256";
-$pass = "7gLLLrvpdiB";
-$db = "if0_41392256_apijorge_empleados";
+$host = "mysql-apijorge.alwaysdata.net";
+$user = "apijorge";
+$pass = "clase1234";
+$db = "apijorge_gestion_empleados";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
