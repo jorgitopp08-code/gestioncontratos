@@ -34,7 +34,7 @@ if (!$admin) {
 }
 
 $storedPin = (string) $admin['pin'];
-$isHash = password_get_info($storedPin)['algo'] !== 0;
+$isHash = password_get_info($storedPin)['algoName'] !== 'unknown';
 
 $credentialsAreValid = $isHash
     ? password_verify($pin, $storedPin)
