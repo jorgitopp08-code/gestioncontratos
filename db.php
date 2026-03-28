@@ -5,9 +5,9 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 // Configura estos valores desde variables de entorno en produccion.
 $host = getenv('DB_HOST') ?: 'mysql-apijorge.alwaysdata.net';
-$port = (int) (getenv('DB_PORT') ?: 'apijorge');
+$port = (int) (getenv('DB_PORT') ?: '3306');
 $database = getenv('DB_NAME') ?: 'apijorge_empleados';
-$user = getenv('DB_USER') ?: 'root';
+$user = getenv('DB_USER') ?: 'apijorge';
 $password = getenv('DB_PASS') ?: 'clase1234';
 
 try {
