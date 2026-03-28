@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS admin;
 CREATE TABLE admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario VARCHAR(50) NOT NULL UNIQUE,
-    pin VARCHAR(255) NOT NULL
+    pin VARCHAR(50) NOT NULL
 );
 
 INSERT INTO admin (usuario, pin)

@@ -34,24 +34,10 @@ if (!$admin) {
 }
 
 $storedPin = (string) $admin['pin'];
-$isHash = password_get_info($storedPin)['algoName'] !== 'unknown';
 
-$credentialsAreValid = $isHash
-    ? password_verify($pin, $storedPin)
-    : hash_equals($storedPin, $pin);
-
-if (!$credentialsAreValid) {
+if (!hash_equals($storedPin, $pin)) {
     set_flash('error', 'Credenciales incorrectas.');
     redirect('index.php');
-}
-
-$adminId = (int) $admin['id'];
-
-if (!$isHash || password_needs_rehash($storedPin, PASSWORD_DEFAULT)) {
-    $newHash = password_hash($pin, PASSWORD_DEFAULT);
-    $updateStatement = $conn->prepare('UPDATE admin SET pin = ? WHERE id = ?');
-    $updateStatement->bind_param('si', $newHash, $adminId);
-    $updateStatement->execute();
 }
 
 login_admin($admin);
