@@ -1,117 +1,111 @@
 <?php
-session_start();
-include("db.php");
+declare(strict_types=1);
 
-// Validar sesión
-if (!isset($_SESSION["admin"])) {
-    header("Location: index.html");
-    exit();
-}
+require_once __DIR__ . '/bootstrap.php';
+require_admin();
+require_once __DIR__ . '/db.php';
 
-$mensaje = "";
+$errors = [];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_fail();
 
-    // Capturar y limpiar datos
-    $cedula = trim($_POST["cedula"]);
-    $nombre = trim($_POST["nombre"]);
-    $fecha  = $_POST["fecha_ingreso"];
-    $telefono = trim($_POST["telefono"]);
-    $correo = trim($_POST["correo"]);
+    $cedula = trim((string) ($_POST['cedula'] ?? ''));
+    $nombre = trim((string) ($_POST['nombre'] ?? ''));
+    $fechaIngreso = trim((string) ($_POST['fecha_ingreso'] ?? ''));
+    $telefono = trim((string) ($_POST['telefono'] ?? ''));
+    $correo = trim((string) ($_POST['correo'] ?? ''));
 
-    // Validaciones
-    if (empty($cedula) || empty($nombre) || empty($fecha)) {
-        $mensaje = "❌ Los campos obligatorios están vacíos";
-    } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL) && !empty($correo)) {
-        $mensaje = "❌ Correo inválido";
-    } else {
+    if ($cedula === '' || $nombre === '' || $fechaIngreso === '') {
+        $errors[] = 'Los campos marcados con * son obligatorios.';
+    }
 
-        // Prepared Statement (seguridad)
-        $stmt = $conn->prepare("INSERT INTO empleados 
-        (cedula, nombre, fecha_ingreso, telefono, correo) 
-        VALUES (?, ?, ?, ?, ?)");
+    if ($correo !== '' && !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Debes ingresar un correo valido.';
+    }
 
-        $stmt->bind_param("sssss", $cedula, $nombre, $fecha, $telefono, $correo);
+    if ($errors === []) {
+        $statement = $conn->prepare(
+            'INSERT INTO empleados (cedula, nombre, fecha_ingreso, telefono, correo)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $statement->bind_param('sssss', $cedula, $nombre, $fechaIngreso, $telefono, $correo);
 
-        if ($stmt->execute()) {
-            header("Location: dashboard.php?ok=1");
-            exit();
-        } else {
-            $mensaje = "❌ Error al guardar";
+        try {
+            $statement->execute();
+            set_flash('success', 'Empleado creado correctamente.');
+            redirect('dashboard.php');
+        } catch (mysqli_sql_exception $exception) {
+            if ((int) $exception->getCode() === 1062) {
+                $errors[] = 'Ya existe un empleado con esa cedula.';
+            } else {
+                error_log('Error creating employee: ' . $exception->getMessage());
+                $errors[] = 'No fue posible guardar el empleado.';
+            }
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Crear Empleado</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body{
-    background: #f4f6f9;
-}
-.card{
-    border-radius: 15px;
-}
-</style>
-
+    <meta charset="UTF-8">
+    <title>Crear Empleado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="card shadow-sm col-lg-6 mx-auto">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="h3 mb-1">Nuevo empleado</h1>
+                        <p class="text-muted mb-0">Completa los datos para registrar al empleado.</p>
+                    </div>
+                    <a href="dashboard.php" class="btn btn-outline-secondary">Volver</a>
+                </div>
 
-<body>
+                <?php if ($errors !== []): ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php foreach ($errors as $error): ?>
+                            <div><?php echo e($error); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
-<div class="container mt-5">
+                <form method="POST" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?php echo e(csrf_token()); ?>">
 
-<div class="card shadow p-4 col-md-6 mx-auto">
+                    <div class="mb-3">
+                        <label for="cedula" class="form-label">Cedula *</label>
+                        <input type="text" id="cedula" name="cedula" class="form-control" required value="<?php echo e(old('cedula')); ?>">
+                    </div>
 
-<h3 class="mb-3 text-center">➕ Crear Empleado</h3>
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" required value="<?php echo e(old('nombre')); ?>">
+                    </div>
 
-<?php if($mensaje): ?>
-<div class="alert alert-danger"><?php echo $mensaje; ?></div>
-<?php endif; ?>
+                    <div class="mb-3">
+                        <label for="fecha_ingreso" class="form-label">Fecha de ingreso *</label>
+                        <input type="date" id="fecha_ingreso" name="fecha_ingreso" class="form-control" required value="<?php echo e(old('fecha_ingreso')); ?>">
+                    </div>
 
-<form method="POST">
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Telefono</label>
+                        <input type="text" id="telefono" name="telefono" class="form-control" value="<?php echo e(old('telefono')); ?>">
+                    </div>
 
-<div class="mb-3">
-<label>Cédula *</label>
-<input type="text" name="cedula" class="form-control" required>
-</div>
+                    <div class="mb-4">
+                        <label for="correo" class="form-label">Correo</label>
+                        <input type="email" id="correo" name="correo" class="form-control" value="<?php echo e(old('correo')); ?>">
+                    </div>
 
-<div class="mb-3">
-<label>Nombre *</label>
-<input type="text" name="nombre" class="form-control" required>
-</div>
-
-<div class="mb-3">
-<label>Fecha de Ingreso *</label>
-<input type="date" name="fecha_ingreso" class="form-control" required>
-</div>
-
-<div class="mb-3">
-<label>Teléfono</label>
-<input type="text" name="telefono" class="form-control">
-</div>
-
-<div class="mb-3">
-<label>Correo</label>
-<input type="email" name="correo" class="form-control">
-</div>
-
-<div class="d-flex justify-content-between">
-    <a href="dashboard.php" class="btn btn-secondary">⬅ Volver</a>
-    <button class="btn btn-success">💾 Guardar</button>
-</div>
-
-</form>
-
-</div>
-</div>
-
+                    <button class="btn btn-success w-100">Guardar empleado</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

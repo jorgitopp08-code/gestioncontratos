@@ -1,20 +1,28 @@
-CREATE DATABASE empresa;
+CREATE DATABASE IF NOT EXISTS empresa
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 
 USE empresa;
 
+-- Este script recrea las tablas base. Haz respaldo si ya tienes datos.
+DROP TABLE IF EXISTS empleados;
+DROP TABLE IF EXISTS admin;
+
 CREATE TABLE admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario VARCHAR(50),
-    pin VARCHAR(10)
+    usuario VARCHAR(50) NOT NULL UNIQUE,
+    pin VARCHAR(255) NOT NULL
 );
 
-INSERT INTO admin VALUES (1,'admin','1234');
+INSERT INTO admin (usuario, pin)
+VALUES ('admin', '1234');
 
 CREATE TABLE empleados (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    cedula VARCHAR(20),
-    nombre VARCHAR(100),
-    fecha_ingreso DATE,
-    telefono VARCHAR(20),
-    correo VARCHAR(100)
+    cedula VARCHAR(20) NOT NULL UNIQUE,
+    nombre VARCHAR(100) NOT NULL,
+    fecha_ingreso DATE NOT NULL,
+    telefono VARCHAR(20) DEFAULT NULL,
+    correo VARCHAR(100) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
