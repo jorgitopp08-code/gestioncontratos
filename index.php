@@ -21,6 +21,7 @@ $successMessage = get_flash('success');
     <style>
         body {
             min-height: 100vh;
+            
             margin: 0;
             display: flex;
             align-items: center;
