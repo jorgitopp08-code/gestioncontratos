@@ -15,6 +15,7 @@ function find_employee(mysqli $connection, int $id): ?array
     );
     $statement->bind_param('i', $id);
     $statement->execute();
+    
 
     $employee = $statement->get_result()->fetch_assoc();
 
